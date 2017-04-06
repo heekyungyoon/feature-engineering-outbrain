@@ -50,7 +50,7 @@ struct SimpleHash {
 std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 {
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic;
-    string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/documents_topics.csv.gz";
+    string filename = "/home/yhk00323/input/documents_topics.csv.gz";
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -105,7 +105,7 @@ std::unordered_map<std::string, std::unordered_map<int, float>> gen_user_topic_m
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
     std::unordered_map<std::string, std::unordered_map<int, float>> user_topic_map;
-    string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views.csv.gz";
+    string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
 
     // I. calculate user-topic interaction based on page_views
@@ -124,8 +124,8 @@ std::unordered_map<std::string, std::unordered_map<int, float>> gen_user_topic_m
 
     int i = 0;
     while(std::getline(instream, uuid, ',')) {
-        if (i == 100000000)
-            break;
+        //if (i == 100000000)
+        //    break;
 
         std::getline(instream, document_id, ',');
 //        std::getline(instream, timestamp, ',');
@@ -184,7 +184,7 @@ std::unordered_map<int, std::pair<std::string, int>> gen_display_map()
 {
     // read events to get uuid and document id from clicks_train
     std::unordered_map<int, std::pair<std::string, int>> display_map;
-    string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/events.csv.gz";
+    string filename = "/home/yhk00323/input/events.csv.gz";
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
@@ -242,7 +242,7 @@ int calc_user_doc_interaction_topic(
 )
 {
     // read clicks_train
-    string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/clicks_test.csv.gz";
+    string filename = "/home/yhk00323/input/clicks_test.csv.gz";
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
@@ -270,8 +270,8 @@ int calc_user_doc_interaction_topic(
     // save interaction to separate file
     int i = 0;
     while(std::getline(test_instream, display_id, ',')) {
-        if (i == 10000000)
-            break;
+        //if (i == 10000000)
+        //    break;
         std::getline(test_instream, others);
         //calculate weight
         float weight = 0.0;
