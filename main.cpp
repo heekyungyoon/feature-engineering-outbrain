@@ -21,6 +21,15 @@ std::string others;
 std::string display_id;
 
 std::unordered_map<std::string, int> uuid_map;
+
+struct pairhash {
+public:
+    template <typename T, typename U>
+    std::size_t operator()(const std::pair<T, U> &x) const
+    {
+        return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
+    }
+};
 std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
 
 int get_uid(std::string &uuid) {
@@ -34,16 +43,6 @@ int get_uid(std::string &uuid) {
     }
     return uid;
 }
-
-
-struct pairhash {
-public:
-  template <typename T, typename U>
-  std::size_t operator()(const std::pair<T, U> &x) const
-  {
-    return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
-  }
-};
 
 
 struct SimpleHash {
