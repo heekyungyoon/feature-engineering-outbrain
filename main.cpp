@@ -20,6 +20,20 @@ std::string uuid;
 std::string others;
 std::string display_id;
 
+std::unordered_map<std::string, int> uuid_map;
+
+int get_uid(std::string &uuid) {
+    int uid;
+    auto pair = uuid_map.find(uuid);
+    if (pair != uuid_map.end()) {
+        uid = pair->second;
+    } else {
+        uid = uuid_map.size();
+        uuid_map.insert(make_pair(uuid, uid));
+    }
+    return uid;
+}
+
 
 struct SimpleHash {
     size_t operator()(const std::pair<std::string, int>& p) const {
@@ -101,10 +115,10 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 };
 
 
-std::unordered_map<std::pair<std::string, int>, float, SimpleHash> gen_user_topic_map(
+std::unordered_map<std::pair<int, int>, float, SimpleHash> gen_user_topic_map(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
-    std::unordered_map<std::pair<std::string, int>, float, SimpleHash> user_topic_map;
+    std::unordered_map<std::pair<int, int>, float, SimpleHash> user_topic_map;
     string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
 
@@ -124,6 +138,7 @@ std::unordered_map<std::pair<std::string, int>, float, SimpleHash> gen_user_topi
 
     int i = 0;
     while(std::getline(instream, uuid, ',')) {
+        int uid = get_uid(uuid);
         //if (i == 100000000)
         //    break;
 
@@ -137,12 +152,12 @@ std::unordered_map<std::pair<std::string, int>, float, SimpleHash> gen_user_topi
         if (document != (*doc_topic_map).end()) {
             for (auto &t: document->second) {
                 //if user topic exists
-                auto user_topic = user_topic_map.find(make_pair(uuid, t.first));
+                auto user_topic = user_topic_map.find(make_pair(uid, t.first));
                 if (user_topic != user_topic_map.end()) {
                     user_topic->second += t.second;
                 } //else user topic doesn't exist
                 else {
-                    user_topic_map.insert({make_pair(uuid, t.first), t.second});
+                    user_topic_map.insert({make_pair(uid, t.first), t.second});
                 }
             }
         }
@@ -171,10 +186,10 @@ std::unordered_map<std::pair<std::string, int>, float, SimpleHash> gen_user_topi
 }
 
 
-std::unordered_map<int, std::pair<std::string, int>> gen_display_map()
+std::unordered_map<int, std::pair<int, int>> gen_display_map()
 {
     // read events to get uuid and document id from clicks_train
-    std::unordered_map<int, std::pair<std::string, int>> display_map;
+    std::unordered_map<int, std::pair<int, int>> display_map;
     string filename = "/home/yhk00323/input/events.csv.gz";
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -196,8 +211,9 @@ std::unordered_map<int, std::pair<std::string, int>> gen_display_map()
         std::getline(instream, uuid, ',');
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
+        int uid = get_uid(uuid);
 
-        display_map.insert({stoi(display_id), std::make_pair(uuid, stoi(document_id))});
+        display_map.insert({stoi(display_id), std::make_pair(uid, stoi(document_id))});
         //std::cout << display_id << "=> " << uuid << " " << document_id << std::endl;
 
         if (i % 1000000 == 0)
@@ -228,8 +244,8 @@ std::unordered_map<int, std::pair<std::string, int>> gen_display_map()
 
 int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
-        std::unordered_map<std::pair<std::string, int>, float, SimpleHash> *user_topic_map,
-        std::unordered_map<int, std::pair<std::string, int>> *display_map
+        std::unordered_map<std::pair<int, int>, float, SimpleHash> *user_topic_map,
+        std::unordered_map<int, std::pair<int, int>> *display_map
 )
 {
     // read clicks_train
@@ -300,10 +316,10 @@ int main() {
     // 0. Read file
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic_map = gen_doc_topic_map();
 
-    std::unordered_map<std::pair<std::string, int>, float, SimpleHash> user_topic_map = gen_user_topic_map(
+    std::unordered_map<std::pair<int, int>, float, SimpleHash> user_topic_map = gen_user_topic_map(
             &doc_topic_map);
 
-    std::unordered_map<int, std::pair<std::string, int>> display_map = gen_display_map();
+    std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map();
 
     // II. calculate user-document interaction
     calc_user_doc_interaction_topic(&doc_topic_map, &user_topic_map, &display_map);
