@@ -147,7 +147,7 @@ void gen_user_topic_map(
 
     int i = 0;
     while(std::getline(instream, uuid, ',')) {
-        int uid = get_uid(uuid);
+        auto user = uuid_map.find(uuid);
         //if (i == 100000000)
         //    break;
 
@@ -158,10 +158,10 @@ void gen_user_topic_map(
         std::getline(instream, others);
 
         auto document = (*doc_topic_map).find(stoi(document_id));
-        if (document != (*doc_topic_map).end()) {
+        if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
             for (auto &t: document->second) {
                 //if user topic exists
-                auto user_topic = user_topic_map.find(make_pair(uid, t.first));
+                auto user_topic = user_topic_map.find(make_pair(user->second, t.first));
                 if (user_topic != user_topic_map.end()) {
                     user_topic->second += t.second;
                 }
