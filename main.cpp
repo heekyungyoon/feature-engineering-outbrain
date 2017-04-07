@@ -130,8 +130,8 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 void gen_user_topic_map(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
-    //string filename = "/home/yhk00323/input/page_views.csv.gz";
-    string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
+    string filename = "/home/yhk00323/input/page_views.csv.gz";
+    //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
 
     // I. calculate user-topic interaction based on page_views
@@ -300,8 +300,8 @@ int calc_user_doc_interaction_topic(
     // save interaction to separate file
     int i = 0;
     while(std::getline(test_instream, display_id, ',')) {
-        if (i == 10)
-            break;
+//        if (i == 10)
+//            break;
         std::getline(test_instream, others);
         //calculate weight
         float weight = 0.0;
