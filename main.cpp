@@ -232,7 +232,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
                 //if user topic doesn't exist
                 auto user_topic = user_topic_map.find(make_pair(uid, t.first));
                 if (user_topic == user_topic_map.end()) {
-                    user_topic_map.insert({make_pair(uid, t.first), t.second});
+                    user_topic_map.insert({make_pair(uid, t.first), 0});
                 }
             }
         }
@@ -312,14 +312,16 @@ int calc_user_doc_interaction_topic(
             // if topic id related to the document id exists
             auto document = (*doc_topic_map).find(display->second.second);
             std::cout << "document id:  " << display->second.second << std::endl;
-            for (auto& dt: document->second) {
-                std::cout << "topic id:  " << dt.first << std::endl;
-                // if topic id related to the user id exists
-                auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
-                if (user_topic != (*user_topic_map).end()) {
-                    std::cout << "(before) weight:  " << weight << std::endl;
-                    weight += user_topic->second;
-                    std::cout << "(after) weight:  " << weight << std::endl;
+            if (document != (*doc_topic_map).end()) {
+                for (auto &dt: document->second) {
+                    std::cout << "topic id:  " << dt.first << std::endl;
+                    // if topic id related to the user id exists
+                    auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
+                    if (user_topic != (*user_topic_map).end()) {
+                        std::cout << "(before) weight:  " << weight << std::endl;
+                        weight += user_topic->second;
+                        std::cout << "(after) weight:  " << weight << std::endl;
+                    }
                 }
             }
         }
