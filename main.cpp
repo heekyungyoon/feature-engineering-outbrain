@@ -35,6 +35,16 @@ int get_uid(std::string &uuid) {
 }
 
 
+struct pairhash {
+public:
+  template <typename T, typename U>
+  std::size_t operator()(const std::pair<T, U> &x) const
+  {
+    return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
+  }
+};
+
+
 struct SimpleHash {
     size_t operator()(const std::pair<std::string, int>& p) const {
         return hash<string>{} (p.first) ^ p.second;
@@ -115,10 +125,10 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 };
 
 
-std::unordered_map<std::pair<int, int>, float, SimpleHash> gen_user_topic_map(
+std::unordered_map<std::pair<int, int>, float, pairhash> gen_user_topic_map(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
-    std::unordered_map<std::pair<int, int>, float, SimpleHash> user_topic_map;
+    std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
     string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
 
@@ -244,7 +254,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map()
 
 int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
-        std::unordered_map<std::pair<int, int>, float, SimpleHash> *user_topic_map,
+        std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
         std::unordered_map<int, std::pair<int, int>> *display_map
 )
 {
@@ -316,7 +326,7 @@ int main() {
     // 0. Read file
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic_map = gen_doc_topic_map();
 
-    std::unordered_map<std::pair<int, int>, float, SimpleHash> user_topic_map = gen_user_topic_map(
+    std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map = gen_user_topic_map(
             &doc_topic_map);
 
     std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map();
