@@ -101,10 +101,10 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 };
 
 
-std::unordered_map<std::string, std::unordered_map<int, float>> gen_user_topic_map(
+std::unordered_map<std::pair<std::string, int>, float, SimpleHash> gen_user_topic_map(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
-    std::unordered_map<std::string, std::unordered_map<int, float>> user_topic_map;
+    std::unordered_map<std::pair<std::string, int>, float, SimpleHash> user_topic_map;
     string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
 
@@ -136,22 +136,13 @@ std::unordered_map<std::string, std::unordered_map<int, float>> gen_user_topic_m
         auto document = (*doc_topic_map).find(stoi(document_id));
         if (document != (*doc_topic_map).end()) {
             for (auto &t: document->second) {
-                //if user exists
-                auto user = user_topic_map.find(uuid);
-                if (user != user_topic_map.end()) {
-                    //if topic exists
-                    auto topic = user->second.find(t.first);
-                    if (topic != (user->second).end()) {
-                        topic->second += t.second;
-                    } //else topic doesn't exist
-                    else {
-                        (user->second).insert({t.first, t.second});
-                    }
-                } //else user doesn't exist
+                //if user topic exists
+                auto user_topic = user_topic_map.find(make_pair(uuid, t.first));
+                if (user_topic != user_topic_map.end()) {
+                    user_topic->second += t.second;
+                } //else user topic doesn't exist
                 else {
-                    std::unordered_map<int, float> vec;
-                    vec.insert({t.first, t.second});
-                    user_topic_map.insert({uuid, vec});
+                    user_topic_map.insert({make_pair(uuid, t.first), t.second});
                 }
             }
         }
@@ -237,7 +228,7 @@ std::unordered_map<int, std::pair<std::string, int>> gen_display_map()
 
 int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
-        std::unordered_map<std::string, std::unordered_map<int, float>> *user_topic_map,
+        std::unordered_map<std::pair<std::string, int>, float, SimpleHash> *user_topic_map,
         std::unordered_map<int, std::pair<std::string, int>> *display_map
 )
 {
@@ -275,27 +266,18 @@ int calc_user_doc_interaction_topic(
         std::getline(test_instream, others);
         //calculate weight
         float weight = 0.0;
+        // if uuid and document id related to the display_id exists
         auto display = (*display_map).find(stoi(display_id));
-        //std::cout << display_id << std::endl;
-
         if (display != (*display_map).end()) {
-            //std::cout << display->first << " " << display->second.first << " " << display->second.second << std::endl;
+            // if topic id related to the document id exists
             auto document = (*doc_topic_map).find(display->second.second);
-            auto user = (*user_topic_map).find(display->second.first);
-            if (document != (*doc_topic_map).end() && user != (*user_topic_map).end()) {
-                //std::cout << document->first << " " << user->first << std::endl;
-                for (auto& dt: document->second) {
-                    //std::cout << "dt: " << dt.first << std::endl;
-                    for (auto& ut: user->second) {
-                        //std::cout << "ut: " << ut.first << std::endl;
-                        if (dt.first == ut.first) {
-                            weight += ut.second;
-                            //std::cout << ut.second << std::endl;
-                        }
-                    }
+            for (auto& dt: document->second) {
+                // if topic id related to the user id exists
+                auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
+                if (user_topic != (*user_topic_map).end()) {
+                    weight += user_topic->second;
                 }
             }
-
         }
         outstream << weight <<"\n";
         ++i;
@@ -318,7 +300,7 @@ int main() {
     // 0. Read file
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic_map = gen_doc_topic_map();
 
-    std::unordered_map<std::string, std::unordered_map<int, float>> user_topic_map = gen_user_topic_map(
+    std::unordered_map<std::pair<std::string, int>, float, SimpleHash> user_topic_map = gen_user_topic_map(
             &doc_topic_map);
 
     std::unordered_map<int, std::pair<std::string, int>> display_map = gen_display_map();
