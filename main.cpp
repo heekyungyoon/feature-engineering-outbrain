@@ -308,19 +308,19 @@ int calc_user_doc_interaction_topic(
         // if uuid and document id related to the display_id exists
         auto display = (*display_map).find(stoi(display_id));
         if (display != (*display_map).end()) {
-            std::cout << "display id:  " << display->first << std::endl;
+            //std::cout << "display id:  " << display->first << std::endl;
             // if topic id related to the document id exists
             auto document = (*doc_topic_map).find(display->second.second);
-            std::cout << "document id:  " << display->second.second << std::endl;
+            //std::cout << "document id:  " << display->second.second << std::endl;
             if (document != (*doc_topic_map).end()) {
                 for (auto &dt: document->second) {
-                    std::cout << "topic id:  " << dt.first << std::endl;
+                    //std::cout << "topic id:  " << dt.first << std::endl;
                     // if topic id related to the user id exists
                     auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
                     if (user_topic != (*user_topic_map).end()) {
-                        std::cout << "(before) weight:  " << weight << std::endl;
+                        //std::cout << "(before) weight:  " << weight << std::endl;
                         weight += user_topic->second;
-                        std::cout << "(after) weight:  " << weight << std::endl;
+                        //std::cout << "(after) weight:  " << weight << std::endl;
                     }
                 }
             }
