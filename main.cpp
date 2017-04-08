@@ -20,8 +20,6 @@ std::string uuid;
 std::string others;
 std::string display_id;
 
-std::unordered_map<std::string, int> uuid_map;
-
 struct pairhash {
 public:
     template <typename T, typename U>
@@ -30,7 +28,10 @@ public:
         return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
     }
 };
+
+std::unordered_map<std::string, int> uuid_map;
 std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
+
 
 int get_uid(std::string &uuid) {
     int uid;
@@ -43,32 +44,6 @@ int get_uid(std::string &uuid) {
     }
     return uid;
 }
-
-
-struct SimpleHash {
-    size_t operator()(const std::pair<std::string, int>& p) const {
-        return hash<string>{} (p.first) ^ p.second;
-    }
-};
-
-//std::istream readfile(std::string filepath)
-//{
-//    std::cout << "Reading file: " << filepath << std::endl;
-//
-//    ifstream file(filepath, ios_base::in | ios_base::binary);
-//    boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
-//    inbuf.push(boost::iostreams::gzip_decompressor());
-//    inbuf.push(file);
-//
-//    std::istream instream(&inbuf);
-//
-//    std::string line;
-//    std::getline(instream, line);
-//
-//    std::cout << line << std::endl;
-//
-//    return instream;
-//}
 
 
 std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
@@ -91,8 +66,6 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     std::cout << "  Headers: " << line << std::endl;
 
     // transform to unordered map
-
-
     int i = 0;
     while(std::getline(topic_instream, document_id, ',')) {
         std::getline(topic_instream, topic_id, ',');
@@ -110,12 +83,6 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     }
 
     topic_file.close();
-    //    for(auto& p: doc_topic) {
-//        std::cout << "document_id: " << p.first << std::endl;
-//        for (auto& pp: p.second) {
-//            std::cout << " topic_id: " <<pp.first << " , confidence_level: " << pp.second << '\n';
-//        }
-//    }
 
     std::cout << "\ni = " << i <<"\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
@@ -175,14 +142,6 @@ void gen_user_topic_map(
             std::cout.flush();
         ++i;
     }
-
-//    for(auto& p: user_topic_map) {
-//        std::cout << "uuid: " << p.first << std::endl;
-//        for (auto& pp: p.second) {
-//            std::cout << " topic_id: " <<pp.first << " , confidence_level: " << pp.second << '\n';
-//        }
-//    }
-
     //Cleanup
     file.close();
 
@@ -219,7 +178,6 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     while(std::getline(instream, display_id, ',')) {
 //        if (i == 1000)
 //            break;
-
         std::getline(instream, uuid, ',');
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
@@ -251,15 +209,6 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
                       (std::chrono::steady_clock::now() - begin).count()
               << "\n"
               << std::endl;
-//    i = 0;
-//    for (auto& p: display_map) {
-//        if (i == 1000)
-//            break;
-//
-//        std::cout << p.first << " " << p.second.first << " " << p.second.second << std::endl;
-//        ++i;
-//    }
-
     return display_map;
 }
 
@@ -308,19 +257,14 @@ int calc_user_doc_interaction_topic(
         // if uuid and document id related to the display_id exists
         auto display = (*display_map).find(stoi(display_id));
         if (display != (*display_map).end()) {
-            //std::cout << "display id:  " << display->first << std::endl;
             // if topic id related to the document id exists
             auto document = (*doc_topic_map).find(display->second.second);
-            //std::cout << "document id:  " << display->second.second << std::endl;
             if (document != (*doc_topic_map).end()) {
                 for (auto &dt: document->second) {
-                    //std::cout << "topic id:  " << dt.first << std::endl;
                     // if topic id related to the user id exists
                     auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
                     if (user_topic != (*user_topic_map).end()) {
-                        //std::cout << "(before) weight:  " << weight << std::endl;
                         weight += user_topic->second;
-                        //std::cout << "(after) weight:  " << weight << std::endl;
                     }
                 }
             }
@@ -342,59 +286,18 @@ int calc_user_doc_interaction_topic(
 
 
 
+
 int main() {
-    // 0. Read file
+    // I. Read file
+    // <document_id, <topic_id, confidence_level>>
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic_map = gen_doc_topic_map();
+    // <display_id, <uuid, document_id>>
     std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map(&doc_topic_map);
+    // <<uuid, topic_id>, sum_confidence_level>
     gen_user_topic_map(&doc_topic_map);
 
-    // II. calculate user-document interaction
+    // II. calculate user-document interaction in terms of topic
     calc_user_doc_interaction_topic(&doc_topic_map, &user_topic_map, &display_map);
 
-
-
-    //
-
-//    // calculate interaction between user and document based on past document topics
-//    // I. calculate user-topic interaction based on page_views - a
-//    unordered_map<pair<int, int>, float> user_topic_score;
-//    // for a page view in page_views:
-//    for (auto row = page_view.begin();row != page_view.end();++row) // let's find a way to parallelize
-//    {
-//        // topic_id = get_topic_id(document_id)
-//        int topic_id = doc_topic_list.find(document_id).second;
-//        // if score[user_id, topic_id] empty:
-//            // score[user_id, topic_id] = topic_confidence_level
-//        // else
-//            // score[user_id, topic_id] += topic_confidence_level
-//            score.find(make_pair(uuid, topic_id)).second += topic_confidence_level;
-//    }
-//
-//
-//    // II. calculate user-document interaction based on a
-//    // for user in users:
-//    for (int i = 0; i <= max(clicks_train);++i)
-//    {
-//        click row = clicks_train.getrow();
-//        // if user's topics are in document's topics:
-//        user_topic_list = score.find(make_pair(uuid, topic_id));
-//        for (int i = 0; i <= max(user_topic_list); ++i)
-//        {
-//            user_topic = user_topic_list.getrow();
-//
-//            doc_topic = doc_topic_list.find(document_id);
-//            for (int i = 0; ; ++i)
-//            {
-//                if (user_topic.topic in doc_topic.topic)
-//                // ud_score[user_id, document_id] += score[user_id, topic_id]
-//                    ud_score[uuid, document_id] += score[uuid, topic_id];
-//            }
-//
-//        }
-//
-//    }
-//
-
-    // III. save result
     return 0;
 }
