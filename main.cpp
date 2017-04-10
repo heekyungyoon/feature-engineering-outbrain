@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono>
+#include <thread>
+#include <future>
 
 using namespace std;
 
@@ -30,7 +32,7 @@ public:
 };
 
 std::unordered_map<std::string, int> uuid_map;
-std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
+std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
 
 
 int get_uid(std::string &uuid) {
@@ -94,13 +96,14 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 };
 
 
-void gen_user_topic_map(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
+unordered_map<std::pair<int, int>, float, pairhash> gen_user_topic_map(
+        std::string filename,
+        int start_row,
+        int end_row,
+        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
+        std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_ref)
 {
-    string filename = "/home/yhk00323/input/page_views.csv.gz";
-    //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
-    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
-
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
     // I. calculate user-topic interaction based on page_views
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -115,43 +118,113 @@ void gen_user_topic_map(
     std::getline(instream, line);
     std::cout << "  Headers: " << line << std::endl;
 
-    int i = 0;
-    while(std::getline(instream, uuid, ',')) {
-        auto user = uuid_map.find(uuid);
-        //if (i == 100000000)
-        //    break;
-
+    int row_count = 0;
+    for(int i = 0; std::getline(instream, uuid, ',') && i <= end_row; ++i) {
+        if (i == 1000)
+            break;
         std::getline(instream, document_id, ',');
-//        std::getline(instream, timestamp, ',');
-//        std::getline(instream, platform, ',');
-//        std::getline(instream, geo_location, ',');
         std::getline(instream, others);
 
-        auto document = (*doc_topic_map).find(stoi(document_id));
-        if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
-            for (auto &t: document->second) {
-                //if user topic exists
-                auto user_topic = user_topic_map.find(make_pair(user->second, t.first));
-                if (user_topic != user_topic_map.end()) {
-                    user_topic->second += t.second;
+        if (i >= start_row && i <= end_row) {
+            ++row_count;
+            auto user = uuid_map.find(uuid);
+            auto document = (*doc_topic_map).find(stoi(document_id));
+            if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
+                for (auto &t: document->second) {
+                    //if user topic exists in the reference
+                    auto user_topic = (*user_topic_ref).find(make_pair(user->second, t.first));
+                    if (user_topic != (*user_topic_ref).end()) {
+                        auto user_topic2 = user_topic_map.find(make_pair(user->second, t.first));
+                        if (user_topic2 != user_topic_map.end()) {
+                            // if user topic exists in the map
+                            user_topic2->second += t.second;
+                        } else {
+                            // if not
+                            user_topic_map.insert({make_pair(user->second, t.first), t.second});
+                        }
+
+                    }
                 }
             }
-        }
-        if (i % 1000000 == 0)
-            std::cout << i/1000000 << "M...";
+            if (i % 10000000 == 0)
+                std::cout << "[" <<start_row << "]" << i/10000000 << "0M...";
             std::cout.flush();
-        ++i;
+        }
+
+
     }
     //Cleanup
     file.close();
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): "
+    std::cout << "\nrow_count = " << row_count <<" (" << start_row << "-" << end_row << ")"
+              << "\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
                       (std::chrono::steady_clock::now() - begin).count()
               << "\n"
               << std::endl;
 
-    //return user_topic_map;
+    return user_topic_map;
+}
+
+
+std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_map_set(
+        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
+{
+    std::vector<unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set;
+    string filename = "/home/yhk00323/input/page_views.csv.gz";
+    //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
+    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
+    unsigned int num_thread = 5;
+    int num_row = 2034275448/num_thread + 1; //406855090
+
+    // create promises
+//    packaged_task<unordered_map<std::pair<int, int>, float, pairhash>(
+//            std::string, int, int,
+//            std::unordered_map<int, std::vector<std::pair<int, float>>>,
+//            std::unordered_map<std::pair<int, int>, float, pairhash>)> task[num_thread];
+    future<unordered_map<std::pair<int, int>, float, pairhash>> val[num_thread];
+    std::thread t[num_thread];
+    for (int i = 0; i < num_thread; ++i) {
+        std::packaged_task<unordered_map<std::pair<int, int>, float, pairhash>(
+                std::string, int, int,
+                std::unordered_map<int, std::vector<std::pair<int, float>>>,
+                std::unordered_map<std::pair<int, int>, float, pairhash>)> task(&gen_user_topic_map);
+        val[i] = task.get_future();
+        t[i] = std::thread(std::move(task),
+                           filename,
+                           i * num_row + 1,
+                           (1+i) * num_row,
+                           &doc_topic_map,
+                           &user_topic_ref);
+    }
+    // get futures
+//
+//    for (int i = 0; i < num_thread; ++i) {
+//
+//    }
+    // schedule promises
+//    for (int i = 0; i < num_thread; ++i) {
+//        t[i] = std::thread(move(task[i]),
+//                           filename[i],
+//                           i * num_row + 1,
+//                           (1+i) * num_row,
+//                           &doc_topic_map,
+//                           &user_topic_ref);
+//    }
+
+    //return value
+    for (int i = 0; i < num_thread; ++i) {
+        t[i].join();
+        //user_topic_map_set[i] = val[i].get();
+    }
+
+    for (int i = 0; i < num_thread; ++i) {
+        //t[i].join();
+        user_topic_map_set[i] = val[i].get();
+    }
+
+
+    return user_topic_map_set;
 }
 
 
@@ -188,9 +261,9 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
         if (document != (*doc_topic_map).end()) {
             for (auto &t: document->second) {
                 //if user topic doesn't exist
-                auto user_topic = user_topic_map.find(make_pair(uid, t.first));
-                if (user_topic == user_topic_map.end()) {
-                    user_topic_map.insert({make_pair(uid, t.first), 0});
+                auto user_topic = user_topic_ref.find(make_pair(uid, t.first));
+                if (user_topic == user_topic_ref.end()) {
+                    user_topic_ref.insert({make_pair(uid, t.first), 0});
                 }
             }
         }
@@ -215,7 +288,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 
 int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
-        std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
+        std::vector<unordered_map<std::pair<int, int>, float, pairhash>> *user_topic_map_set,
         std::unordered_map<int, std::pair<int, int>> *display_map
 )
 {
@@ -262,9 +335,11 @@ int calc_user_doc_interaction_topic(
             if (document != (*doc_topic_map).end()) {
                 for (auto &dt: document->second) {
                     // if topic id related to the user id exists
-                    auto user_topic = (*user_topic_map).find(make_pair(display->second.first, dt.first));
-                    if (user_topic != (*user_topic_map).end()) {
-                        weight += user_topic->second;
+                    for (auto &ut_map: (*user_topic_map_set)) {
+                        auto user_topic = ut_map.find(make_pair(display->second.first, dt.first));
+                        if (user_topic != ut_map.end()) {
+                            weight += user_topic->second;
+                        }
                     }
                 }
             }
@@ -280,8 +355,9 @@ int calc_user_doc_interaction_topic(
                       (std::chrono::steady_clock::now() - begin).count()
               << "\n"
               << std::endl;
-
     return 0;
+    //return user_topic_map;
+
 }
 
 
@@ -294,10 +370,10 @@ int main() {
     // <display_id, <uuid, document_id>>
     std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map(&doc_topic_map);
     // <<uuid, topic_id>, sum_confidence_level>
-    gen_user_topic_map(&doc_topic_map);
+    std::vector<unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set = gen_user_topic_map_set(&doc_topic_map);
 
     // II. calculate user-document interaction in terms of topic
-    calc_user_doc_interaction_topic(&doc_topic_map, &user_topic_map, &display_map);
+    calc_user_doc_interaction_topic(&doc_topic_map, &user_topic_map_set, &display_map);
 
     return 0;
 }
