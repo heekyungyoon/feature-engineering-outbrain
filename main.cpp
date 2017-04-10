@@ -97,6 +97,7 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 
 
 void gen_user_topic_map(
+        int tid,
         std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
         std::string filename,
         int start_row,
@@ -133,20 +134,20 @@ void gen_user_topic_map(
             auto user = uuid_map.find(uuid);
             auto document = (*doc_topic_map).find(stoi(document_id));
             if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
-                std::cout << "  Found uuid AND document_id!" << std::endl;
+                std::cout << tid << "  Found uuid AND document_id!" << std::endl;
                 for (auto &t: document->second) {
                     //if user topic exists in the reference
                     auto user_topic = user_topic_ref.find(make_pair(user->second, t.first));
                     if (user_topic != user_topic_ref.end()) {
-                        std::cout << "  Found user_topic in user_topic_Ref!" << std::endl;
+                        std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
                         auto user_topic2 = (*user_topic_map).find(make_pair(user->second, t.first));
                         if (user_topic2 != (*user_topic_map).end()) {
-                            std::cout << "  Found user topic in user topic map" << std::endl;
+                            std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
                             // if user topic exists in the map
                             user_topic2->second += t.second;
                         } else {
                             // if not
-                            std::cout << "  didn't Found user topic in user topic map" << std::endl;
+                            std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
                             (*user_topic_map).insert({make_pair(user->second, t.first), t.second});
                         }
 
@@ -207,6 +208,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
 
     int i = 0;
     t.push_back(std::thread(gen_user_topic_map,
+                            i,
                             &user_topic_map0,
                             filename,
                             (i * num_row + 1),
@@ -214,6 +216,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                             &(*doc_topic_map)));
     i = 1;
     t.push_back(std::thread(gen_user_topic_map,
+                            i,
                             &user_topic_map1,
                             filename,
                             (i * num_row + 1),
@@ -221,6 +224,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                             &(*doc_topic_map)));
     i = 2;
     t.push_back(std::thread(gen_user_topic_map,
+                            i,
                             &user_topic_map2,
                             filename,
                             (i * num_row + 1),
@@ -228,6 +232,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                             &(*doc_topic_map)));
     i = 3;
     t.push_back(std::thread(gen_user_topic_map,
+                            i,
                             &user_topic_map3,
                             filename,
                             (i * num_row + 1),
@@ -235,6 +240,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                             &(*doc_topic_map)));
     i = 4;
     t.push_back(std::thread(gen_user_topic_map,
+                            i,
                             &user_topic_map4,
                             filename,
                             (i * num_row + 1),
