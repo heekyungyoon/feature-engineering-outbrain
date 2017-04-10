@@ -182,23 +182,63 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
     unsigned int num_thread = 5;
     int num_row = 2034275448/num_thread + 1; //406855090
 
-
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map0;
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map1;
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map2;
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map3;
+    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map4;
     // create promises
-    for (int i = 0; i < num_thread; ++i) {
-        unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
-        user_topic_map_set.push_back(user_topic_map);
-    }
-
+//    for (int i = 0; i < num_thread; ++i) {
+//        unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
+//        user_topic_map_set.push_back(user_topic_map);
+//    }
+//
     std::vector<std::thread> t;
-    for (int i = 0; i < num_thread; ++i) {
-        t.push_back(std::thread(gen_user_topic_map,
-                                &user_topic_map_set[i],
-                                filename,
-                                (i * num_row + 1),
-                                ((1+i) * num_row),
-                                &(*doc_topic_map)));
-    }
-    // get futures
+//    for (int i = 0; i < num_thread; ++i) {
+//        t.push_back(std::thread(gen_user_topic_map,
+//                                &user_topic_map_set[i],
+//                                filename,
+//                                (i * num_row + 1),
+//                                ((1+i) * num_row),
+//                                &(*doc_topic_map)));
+//    }
+
+    int i = 0;
+    t.push_back(std::thread(gen_user_topic_map,
+                            &user_topic_map0,
+                            filename,
+                            (i * num_row + 1),
+                            ((1+i) * num_row),
+                            &(*doc_topic_map)));
+    i = 1;
+    t.push_back(std::thread(gen_user_topic_map,
+                            &user_topic_map1,
+                            filename,
+                            (i * num_row + 1),
+                            ((1+i) * num_row),
+                            &(*doc_topic_map)));
+    i = 2;
+    t.push_back(std::thread(gen_user_topic_map,
+                            &user_topic_map2,
+                            filename,
+                            (i * num_row + 1),
+                            ((1+i) * num_row),
+                            &(*doc_topic_map)));
+    i = 3;
+    t.push_back(std::thread(gen_user_topic_map,
+                            &user_topic_map3,
+                            filename,
+                            (i * num_row + 1),
+                            ((1+i) * num_row),
+                            &(*doc_topic_map)));
+    i = 4;
+    t.push_back(std::thread(gen_user_topic_map,
+                            &user_topic_map4,
+                            filename,
+                            (i * num_row + 1),
+                            ((1+i) * num_row),
+                            &(*doc_topic_map)));
+//    // get futures
 //
 //    for (int i = 0; i < num_thread; ++i) {
 //
@@ -218,7 +258,11 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
         th.join();
     }
 
-
+    user_topic_map_set.push_back(user_topic_map0);
+    user_topic_map_set.push_back(user_topic_map1);
+    user_topic_map_set.push_back(user_topic_map2);
+    user_topic_map_set.push_back(user_topic_map3);
+    user_topic_map_set.push_back(user_topic_map4);
     return user_topic_map_set;
 }
 
