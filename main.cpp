@@ -108,7 +108,7 @@ void gen_user_topic_map(
     std::string document_id;
     // I. calculate user-topic interaction based on page_views
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    std::cout << "Start processing " << filename << std::endl;
+    std::cout << tid << "Start processing " << filename << std::endl;
 
     ifstream file(filename, ios_base::in | ios_base::binary);
     boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
@@ -127,6 +127,7 @@ void gen_user_topic_map(
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
         //std::cout << "  Here!" << std::endl;
+        std::cout << tid << "  i = " << i << std::endl;
 
         if (i >= start_row && i <= end_row) {
             ++row_count;
