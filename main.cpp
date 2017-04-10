@@ -19,7 +19,7 @@ std::string confidence_level;
 //    std::string timestamp;
 //    std::string platform;
 //    std::string geo_location;
-std::string others;
+//std::string others;
 std::string display_id;
 
 struct pairhash {
@@ -106,6 +106,8 @@ void gen_user_topic_map(
 {
     std::string uuid;
     std::string document_id;
+    std::string others;
+
     // I. calculate user-topic interaction based on page_views
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << tid << "Start processing " << filename << std::endl;
@@ -285,6 +287,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/events.csv.gz";
     std::string uuid;
     std::string document_id;
+    std::string others;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -343,6 +346,7 @@ int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::pair<int, int>> *display_map
 )
 {
+    std::string others;
     // read clicks_train
     string filename = "/home/yhk00323/input/clicks_test.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/clicks_test.csv.gz";
