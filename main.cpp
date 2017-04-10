@@ -127,7 +127,7 @@ void gen_user_topic_map(
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
         //std::cout << "  Here!" << std::endl;
-        std::cout << tid << "  i = " << i << std::endl;
+        //std::cout << tid << "  i = " << i << std::endl;
 
         if (i >= start_row && i <= end_row) {
             ++row_count;
@@ -135,20 +135,20 @@ void gen_user_topic_map(
             auto user = uuid_map.find(uuid);
             auto document = (*doc_topic_map).find(stoi(document_id));
             if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
-                std::cout << tid << "  Found uuid AND document_id!" << std::endl;
+               // std::cout << tid << "  Found uuid AND document_id!" << std::endl;
                 for (auto &t: document->second) {
                     //if user topic exists in the reference
                     auto user_topic = user_topic_ref.find(make_pair(user->second, t.first));
                     if (user_topic != user_topic_ref.end()) {
-                        std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
+                  //      std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
                         auto user_topic2 = (*user_topic_map).find(make_pair(user->second, t.first));
                         if (user_topic2 != (*user_topic_map).end()) {
-                            std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
+                    //        std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
                             // if user topic exists in the map
                             user_topic2->second += t.second;
                         } else {
                             // if not
-                            std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
+                      //      std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
                             (*user_topic_map).insert({make_pair(user->second, t.first), t.second});
                         }
 
@@ -300,8 +300,8 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 
     int i = 0;
     while(std::getline(instream, display_id, ',')) {
-//        if (i == 1000)
-//            break;
+        if (i == 1000)
+            break;
         std::getline(instream, uuid, ',');
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
