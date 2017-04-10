@@ -12,10 +12,10 @@
 using namespace std;
 
 std::string line;
-std::string document_id;
+//std::string document_id;
 std::string topic_id;
 std::string confidence_level;
-std::string uuid;
+//std::string uuid;
 //    std::string timestamp;
 //    std::string platform;
 //    std::string geo_location;
@@ -53,7 +53,7 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic;
     string filename = "/home/yhk00323/input/documents_topics.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/documents_topics.csv.gz";
-
+    std::string document_id;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -103,6 +103,8 @@ void gen_user_topic_map(
         int end_row,
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
+    std::string uuid;
+    std::string document_id;
     // I. calculate user-topic interaction based on page_views
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -274,6 +276,9 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     std::unordered_map<int, std::pair<int, int>> display_map;
     string filename = "/home/yhk00323/input/events.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/events.csv.gz";
+    std::string uuid;
+    std::string document_id;
+
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
