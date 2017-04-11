@@ -11,17 +11,6 @@
 
 using namespace std;
 
-std::string line;
-//std::string document_id;
-std::string topic_id;
-std::string confidence_level;
-//std::string uuid;
-//    std::string timestamp;
-//    std::string platform;
-//    std::string geo_location;
-//std::string others;
-std::string display_id;
-
 struct pairhash {
 public:
     template <typename T, typename U>
@@ -54,6 +43,9 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     string filename = "/home/yhk00323/input/documents_topics.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/documents_topics.csv.gz";
     std::string document_id;
+    std::string topic_id;
+    std::string confidence_level;
+    std::string others;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
@@ -64,8 +56,8 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     topic_inbuf.push(topic_file);
     std::istream topic_instream(&topic_inbuf);
 
-    std::getline(topic_instream, line);
-    std::cout << "  Headers: " << line << std::endl;
+    std::getline(topic_instream, others);
+    std::cout << "  Headers: " << others << std::endl;
 
     // transform to unordered map
     int i = 0;
@@ -123,37 +115,31 @@ void gen_user_topic_map(
     std::cout << "  Headers: " << others << std::endl;
 
     // skip rows until start row
-    int i = 0;
+    int i = 0; //all rows
     while(i < start_row - 1) {
         std::getline(instream, others);
         ++i;
     }
     // start processing
-    int row_count = 0;
+    int row_count = 0; //processed rows
     while(std::getline(instream, uuid, ',') && i < end_row) {
-//        if (i == 1000)
-//            break;
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
-        //std::cout << tid << "  i = " << i << std::endl;
 
-        auto user = uuid_map.find(uuid);
+        auto user = uuid_map.find(uuid);  // convert string uuid to int uid to save memory
+        // if the document has topics associated with it
         auto document = (*doc_topic_map).find(stoi(document_id));
         if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
-           // std::cout << tid << "  Found uuid AND document_id!" << std::endl;
             for (auto &t: document->second) {
                 //if user topic exists in the reference
                 auto user_topic = user_topic_ref.find(make_pair(user->second, t.first));
                 if (user_topic != user_topic_ref.end()) {
-              //      std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
                     auto user_topic2 = (*user_topic_map).find(make_pair(user->second, t.first));
                     if (user_topic2 != (*user_topic_map).end()) {
-                //        std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
                         // if user topic exists in the map
                         user_topic2->second += t.second;
                     } else {
                         // if not
-                  //      std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
                         (*user_topic_map).insert({make_pair(user->second, t.first), t.second});
                     }
 
@@ -176,8 +162,6 @@ void gen_user_topic_map(
                       (std::chrono::steady_clock::now() - begin).count()
               << "\n"
               << std::endl;
-
-    //return 0;
 }
 
 
@@ -187,7 +171,6 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
     std::vector<unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set;
     string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
-    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/page_views_sample.csv.gz";
     unsigned int num_thread = 5;
     int num_row = 2034275448/num_thread + 1; //406855090
 
@@ -196,21 +179,8 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
     unordered_map<std::pair<int, int>, float, pairhash> user_topic_map2;
     unordered_map<std::pair<int, int>, float, pairhash> user_topic_map3;
     unordered_map<std::pair<int, int>, float, pairhash> user_topic_map4;
-    // create promises
-//    for (int i = 0; i < num_thread; ++i) {
-//        unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
-//        user_topic_map_set.push_back(user_topic_map);
-//    }
-//
+
     std::vector<std::thread> t;
-//    for (int i = 0; i < num_thread; ++i) {
-//        t.push_back(std::thread(gen_user_topic_map,
-//                                &user_topic_map_set[i],
-//                                filename,
-//                                (i * num_row + 1),
-//                                ((1+i) * num_row),
-//                                &(*doc_topic_map)));
-//    }
 
     int i = 0;
     t.push_back(std::thread(gen_user_topic_map,
@@ -252,20 +222,6 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                             (i * num_row + 1),
                             ((1+i) * num_row),
                             &(*doc_topic_map)));
-//    // get futures
-//
-//    for (int i = 0; i < num_thread; ++i) {
-//
-//    }
-    // schedule promises
-//    for (int i = 0; i < num_thread; ++i) {
-//        t[i] = std::thread(move(task[i]),
-//                           filename[i],
-//                           i * num_row + 1,
-//                           (1+i) * num_row,
-//                           &doc_topic_map,
-//                           &user_topic_ref);
-//    }
 
     //finish thread
     for (auto &th: t) {
@@ -287,7 +243,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     // read events to get uuid and document id from clicks_train
     std::unordered_map<int, std::pair<int, int>> display_map;
     string filename = "/home/yhk00323/input/events.csv.gz";
-    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/events.csv.gz";
+    std::string display_id;
     std::string uuid;
     std::string document_id;
     std::string others;
@@ -301,19 +257,20 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     inbuf.push(file);
     std::istream instream(&inbuf);
 
-    std::getline(instream, line);
-    std::cout << "  Headers: " << line << std::endl;
+    std::getline(instream, others);
+    std::cout << "  Headers: " << others << std::endl;
 
-    int i = 0;
+    int i = 0; //rows
     while(std::getline(instream, display_id, ',')) {
-        //if (i == 1000)
-        //    break;
         std::getline(instream, uuid, ',');
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
         int uid = get_uid(uuid);
 
+        //insert all display ids to display map
         display_map.insert({stoi(display_id), std::make_pair(uid, stoi(document_id))});
+        //save all user-topic pair associated with display ids in events.csv (afterwards, won't process what's not in it)
+        //if the document has topics associated with it
         auto document = (*doc_topic_map).find(stoi(document_id));
         if (document != (*doc_topic_map).end()) {
             for (auto &t: document->second) {
@@ -328,7 +285,6 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
         if (i % 1000000 == 0)
             std::cout << i/1000000 << "M...";
             std::cout.flush();
-
         ++i;
     }
 
@@ -349,10 +305,11 @@ int calc_user_doc_interaction_topic(
         std::unordered_map<int, std::pair<int, int>> *display_map
 )
 {
-    std::string others;
     // read clicks_train
     string filename = "/home/yhk00323/input/clicks_test.csv.gz";
-    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/clicks_test.csv.gz";
+    std::string display_id;
+    std::string others;
+
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
@@ -363,8 +320,8 @@ int calc_user_doc_interaction_topic(
     std::istream test_instream(&test_inbuf);
 
     // transform to unordered map
-    std::getline(test_instream, line);
-    std::cout << "  Headers: " << line << std::endl;
+    std::getline(test_instream, others);
+    std::cout << "  Headers: " << others << std::endl;
 
     // write interaction weights
     std::ofstream outfile("clicks_test_doc_topic_weight.csv.gz", std::ios_base::out | std::ios_base::binary);
@@ -380,8 +337,6 @@ int calc_user_doc_interaction_topic(
     // save interaction to separate file
     int i = 0;
     while(std::getline(test_instream, display_id, ',')) {
-//        if (i == 10)
-//            break;
         std::getline(test_instream, others);
         //calculate weight
         float weight = 0.0;
@@ -414,8 +369,6 @@ int calc_user_doc_interaction_topic(
               << "\n"
               << std::endl;
     return 0;
-    //return user_topic_map;
-
 }
 
 
