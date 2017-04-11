@@ -306,8 +306,8 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 
     int i = 0;
     while(std::getline(instream, display_id, ',')) {
-        if (i == 1000)
-            break;
+        //if (i == 1000)
+        //    break;
         std::getline(instream, uuid, ',');
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
