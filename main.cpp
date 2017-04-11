@@ -171,22 +171,20 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
     std::vector<unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set;
     string filename = "/home/yhk00323/input/page_views.csv.gz";
     //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
-    unsigned int num_thread = 5;
-    int num_row = 2034275448/num_thread + 1; //406855090
 
-//    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map0;
-//    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map1;
-//    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map2;
-//    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map3;
-//    unordered_map<std::pair<int, int>, float, pairhash> user_topic_map4;
+    unsigned int num_thread = 5;
+    int num_row = 2034275448/num_thread + 1; //406,855,090
+
+    //init user_topic_map
     for (int i = 0; i < num_thread; ++i) {
         unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
         user_topic_map_set.push_back(user_topic_map);
     }
 
-    std::vector<std::thread> t;
+    //start thread
+    std::vector<std::thread> thread_list;
     for (int i = 0; i < num_thread; ++i) {
-        t.push_back(std::thread(gen_user_topic_map,
+        thread_list.push_back(std::thread(gen_user_topic_map,
                                 i,
                                 &user_topic_map_set[i],
                                 filename,
@@ -194,57 +192,11 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                                 ((1 + i) * num_row),
                                 &(*doc_topic_map)));
     }
-//    int i = 0;
-//    t.push_back(std::thread(gen_user_topic_map,
-//                            i,
-//                            &user_topic_map0,
-//                            filename,
-//                            (i * num_row + 1),
-//                            ((1+i) * num_row),
-//                            &(*doc_topic_map)));
-//    i = 1;
-//    t.push_back(std::thread(gen_user_topic_map,
-//                            i,
-//                            &user_topic_map1,
-//                            filename,
-//                            (i * num_row + 1),
-//                            ((1+i) * num_row),
-//                            &(*doc_topic_map)));
-//    i = 2;
-//    t.push_back(std::thread(gen_user_topic_map,
-//                            i,
-//                            &user_topic_map2,
-//                            filename,
-//                            (i * num_row + 1),
-//                            ((1+i) * num_row),
-//                            &(*doc_topic_map)));
-//    i = 3;
-//    t.push_back(std::thread(gen_user_topic_map,
-//                            i,
-//                            &user_topic_map3,
-//                            filename,
-//                            (i * num_row + 1),
-//                            ((1+i) * num_row),
-//                            &(*doc_topic_map)));
-//    i = 4;
-//    t.push_back(std::thread(gen_user_topic_map,
-//                            i,
-//                            &user_topic_map4,
-//                            filename,
-//                            (i * num_row + 1),
-//                            ((1+i) * num_row),
-//                            &(*doc_topic_map)));
 
     //finish thread
-    for (auto &th: t) {
-        th.join();
+    for (auto &t: thread_list) {
+        t.join();
     }
-
-//    user_topic_map_set.push_back(user_topic_map0);
-//    user_topic_map_set.push_back(user_topic_map1);
-//    user_topic_map_set.push_back(user_topic_map2);
-//    user_topic_map_set.push_back(user_topic_map3);
-//    user_topic_map_set.push_back(user_topic_map4);
     return user_topic_map_set;
 }
 
