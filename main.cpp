@@ -119,55 +119,58 @@ void gen_user_topic_map(
     std::istream instream(&inbuf);
 
     // transform to unordered map
-    std::getline(instream, line);
-    std::cout << "  Headers: " << line << std::endl;
+    std::getline(instream, others);
+    std::cout << "  Headers: " << others << std::endl;
 
+    // skip rows until start row
+    int i = 0;
+    while(i < start_row - 1) {
+        std::getline(instream, others);
+        ++i;
+    }
+    // start processing
     int row_count = 0;
-    for(int i = 0; std::getline(instream, uuid, ',') && i <= end_row; ++i) {
+    while(std::getline(instream, uuid, ',') && i < end_row) {
 //        if (i == 1000)
 //            break;
         std::getline(instream, document_id, ',');
         std::getline(instream, others);
-        //std::cout << "  Here!" << std::endl;
         //std::cout << tid << "  i = " << i << std::endl;
 
-        if (i >= start_row && i <= end_row) {
-            ++row_count;
-            //std::cout << "  Hi!" << std::endl;
-            auto user = uuid_map.find(uuid);
-            auto document = (*doc_topic_map).find(stoi(document_id));
-            if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
-               // std::cout << tid << "  Found uuid AND document_id!" << std::endl;
-                for (auto &t: document->second) {
-                    //if user topic exists in the reference
-                    auto user_topic = user_topic_ref.find(make_pair(user->second, t.first));
-                    if (user_topic != user_topic_ref.end()) {
-                  //      std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
-                        auto user_topic2 = (*user_topic_map).find(make_pair(user->second, t.first));
-                        if (user_topic2 != (*user_topic_map).end()) {
-                    //        std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
-                            // if user topic exists in the map
-                            user_topic2->second += t.second;
-                        } else {
-                            // if not
-                      //      std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
-                            (*user_topic_map).insert({make_pair(user->second, t.first), t.second});
-                        }
-
+        auto user = uuid_map.find(uuid);
+        auto document = (*doc_topic_map).find(stoi(document_id));
+        if (user != uuid_map.end() && document != (*doc_topic_map).end()) {
+           // std::cout << tid << "  Found uuid AND document_id!" << std::endl;
+            for (auto &t: document->second) {
+                //if user topic exists in the reference
+                auto user_topic = user_topic_ref.find(make_pair(user->second, t.first));
+                if (user_topic != user_topic_ref.end()) {
+              //      std::cout << tid <<  "  Found user_topic in user_topic_Ref!" << std::endl;
+                    auto user_topic2 = (*user_topic_map).find(make_pair(user->second, t.first));
+                    if (user_topic2 != (*user_topic_map).end()) {
+                //        std::cout << tid <<  "  Found user topic in user topic map" << std::endl;
+                        // if user topic exists in the map
+                        user_topic2->second += t.second;
+                    } else {
+                        // if not
+                  //      std::cout << tid <<  "  didn't Found user topic in user topic map" << std::endl;
+                        (*user_topic_map).insert({make_pair(user->second, t.first), t.second});
                     }
+
                 }
             }
-            if (i % 10000000 == 0)
-                std::cout << "[" <<start_row << "]" << i/10000000 << "0M...";
+        }
+        if (i % 10000000 == 0) {
+            std::cout << "[" <<start_row << "]" << i/10000000 << "0M...";
             std::cout.flush();
         }
-
-
+        ++row_count;
+        ++i;
     }
     //Cleanup
     file.close();
 
-    std::cout << "\nrow_count = " << row_count <<" (" << start_row << "-" << end_row << ")"
+    std::cout << "\nrow_count = " << row_count <<" (" << start_row << " - " << end_row << ")"
               << "\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
                       (std::chrono::steady_clock::now() - begin).count()
