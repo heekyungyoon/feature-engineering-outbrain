@@ -1,13 +1,11 @@
 #include <fstream>
 #include <iostream>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
 #include <unordered_map>
 #include <vector>
 #include <chrono>
 #include <thread>
 #include <future>
+#include "io.h"
 
 using namespace std;
 
@@ -40,7 +38,7 @@ int get_uid(std::string &uuid) {
 std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 {
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic;
-    string filename = "/home/yhk00323/input/documents_topics.csv.gz";
+    string filename = "../input/documents_topics.csv.gz";
     //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/documents_topics.csv.gz";
     std::string document_id;
     std::string topic_id;
@@ -50,20 +48,13 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
-    ifstream topic_file(filename, ios_base::in | ios_base::binary);
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> topic_inbuf;
-    topic_inbuf.push(boost::iostreams::gzip_decompressor());
-    topic_inbuf.push(topic_file);
-    std::istream topic_instream(&topic_inbuf);
-
-    std::getline(topic_instream, others);
-    std::cout << "  Headers: " << others << std::endl;
+    csvgz_reader file(filename);
 
     // transform to unordered map
     int i = 0;
-    while(std::getline(topic_instream, document_id, ',')) {
-        std::getline(topic_instream, topic_id, ',');
-        std::getline(topic_instream, confidence_level);
+    while(file.getline(&document_id, ',')) {
+        file.getline(&topic_id, ',');
+        file.getline(&confidence_level);
 
         auto item = doc_topic.find(stoi(document_id));
         if (item != doc_topic.end()) {
@@ -75,8 +66,6 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
         }
         ++i;
     }
-
-    topic_file.close();
 
     std::cout << "\ni = " << i <<"\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
@@ -104,27 +93,19 @@ void gen_user_topic_map(
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << tid << "Start processing " << filename << std::endl;
 
-    ifstream file(filename, ios_base::in | ios_base::binary);
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
-    inbuf.push(boost::iostreams::gzip_decompressor());
-    inbuf.push(file);
-    std::istream instream(&inbuf);
-
-    // transform to unordered map
-    std::getline(instream, others);
-    std::cout << "  Headers: " << others << std::endl;
+    csvgz_reader file(filename);
 
     // skip rows until start row
     int i = 0; //all rows
     while(i < start_row - 1) {
-        std::getline(instream, others);
+        file.getline(&others);
         ++i;
     }
     // start processing
     int row_count = 0; //processed rows
-    while(std::getline(instream, uuid, ',') && i < end_row) {
-        std::getline(instream, document_id, ',');
-        std::getline(instream, others);
+    while(file.getline(&uuid, ',') && i < end_row) {
+        file.getline(&document_id, ',');
+        file.getline(&others);
 
         auto user = uuid_map.find(uuid);  // convert string uuid to int uid to save memory
         // if the document has topics associated with it
@@ -153,8 +134,6 @@ void gen_user_topic_map(
         ++row_count;
         ++i;
     }
-    //Cleanup
-    file.close();
 
     std::cout << "\nrow_count = " << row_count <<" (" << start_row << " - " << end_row << ")"
               << "\nTime taken (sec): "
@@ -169,8 +148,8 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
         std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
 {
     std::vector<unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set;
-    string filename = "/home/yhk00323/input/page_views.csv.gz";
-    //string filename = "/home/yhk00323/input/page_views_sample.csv.gz";
+    string filename = "../input/page_views.csv.gz";
+    //string filename = "../input/page_views_sample.csv.gz";
 
     unsigned int num_thread = 5;
     int num_row = 2034275448/num_thread + 1; //406,855,090
@@ -206,7 +185,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 {
     // read events to get uuid and document id from clicks_train
     std::unordered_map<int, std::pair<int, int>> display_map;
-    string filename = "/home/yhk00323/input/events.csv.gz";
+    string filename = "../input/events.csv.gz";
     std::string display_id;
     std::string uuid;
     std::string document_id;
@@ -215,20 +194,13 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
-    ifstream file(filename, ios_base::in | ios_base::binary);
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
-    inbuf.push(boost::iostreams::gzip_decompressor());
-    inbuf.push(file);
-    std::istream instream(&inbuf);
-
-    std::getline(instream, others);
-    std::cout << "  Headers: " << others << std::endl;
+    csvgz_reader file(filename);
 
     int i = 0; //rows
-    while(std::getline(instream, display_id, ',')) {
-        std::getline(instream, uuid, ',');
-        std::getline(instream, document_id, ',');
-        std::getline(instream, others);
+    while(file.getline(&display_id, ',')) {
+        file.getline(&uuid, ',');
+        file.getline(&document_id, ',');
+        file.getline(&others);
         int uid = get_uid(uuid);
 
         //insert all display ids to display map
@@ -252,8 +224,6 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
         ++i;
     }
 
-    file.close();
-
     std::cout << "\ni = " << i <<"\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
                       (std::chrono::steady_clock::now() - begin).count()
@@ -270,22 +240,14 @@ int calc_user_doc_interaction_topic(
 )
 {
     // read clicks_train
-    string filename = "/home/yhk00323/input/clicks_test.csv.gz";
+    string filename = "../input/clicks_test.csv.gz";
     std::string display_id;
     std::string others;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Start processing " << filename << std::endl;
 
-    ifstream test_file(filename, ios_base::in | ios_base::binary);
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> test_inbuf;
-    test_inbuf.push(boost::iostreams::gzip_decompressor());
-    test_inbuf.push(test_file);
-    std::istream test_instream(&test_inbuf);
-
-    // transform to unordered map
-    std::getline(test_instream, others);
-    std::cout << "  Headers: " << others << std::endl;
+    csvgz_reader file(filename);
 
     // write interaction weights
     std::ofstream outfile("clicks_test_doc_topic_weight.csv.gz", std::ios_base::out | std::ios_base::binary);
@@ -300,8 +262,8 @@ int calc_user_doc_interaction_topic(
     // read clicks_train row
     // save interaction to separate file
     int i = 0;
-    while(std::getline(test_instream, display_id, ',')) {
-        std::getline(test_instream, others);
+    while(file.getline(&display_id, ',')) {
+        file.getline(&others);
         //calculate weight
         float weight = 0.0;
         // if uuid and document id related to the display_id exists
@@ -324,8 +286,6 @@ int calc_user_doc_interaction_topic(
         outstream << weight <<"\n";
         ++i;
     }
-
-    test_file.close();
 
     std::cout << "\ni = " << i <<"\nTime taken (sec): "
               << std::chrono::duration_cast<std::chrono::seconds>
