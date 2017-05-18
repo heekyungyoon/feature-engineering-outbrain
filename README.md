@@ -7,7 +7,7 @@ This code tests multi threading with feature engineering with large size data (2
 
 ## Quickstart
 ```$sh
-$ g++ -std=c++11 main.cpp -o main -lboost_iostreams -lpthread
+$ g++ -std=c++11 main.cpp io.h -o main -lboost_iostreams -lpthread
 $ ./main
 ```
 
