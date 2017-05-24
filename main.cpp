@@ -9,6 +9,8 @@
 
 using namespace std;
 
+UuidMap uuid_map;
+
 struct pairhash {
 public:
     template <typename T, typename U>
@@ -18,22 +20,7 @@ public:
     }
 };
 
-std::unordered_map<std::string, int> uuid_map;
 std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
-
-
-int get_uid(std::string &uuid) {
-    int uid;
-    auto pair = uuid_map.find(uuid);
-    if (pair != uuid_map.end()) {
-        uid = pair->second;
-    } else {
-        uid = uuid_map.size();
-        uuid_map.insert(make_pair(uuid, uid));
-    }
-    return uid;
-}
-
 
 std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 {
@@ -44,10 +31,10 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     std::string confidence_level;
     std::string others;
 
-    timer tmr;
+    Timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
-    csvgz_reader file(filename);
+    CsvGzReader file(filename);
 
     // transform to unordered map
     int i = 0;
@@ -86,10 +73,10 @@ void gen_user_topic_map(
     std::string others;
 
     // I. calculate user-topic interaction based on page_views
-    timer tmr;
+    Timer tmr;
     std::cout << tid << "Start processing " << filename << std::endl;
 
-    csvgz_reader file(filename);
+    CsvGzReader file(filename);
 
     // skip rows until start row
     int i = 0; //all rows
@@ -183,17 +170,17 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     std::string document_id;
     std::string others;
 
-    timer tmr;
+    Timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
-    csvgz_reader file(filename);
+    CsvGzReader file(filename);
 
     int i = 0; //rows
     while(file.getline(&display_id, ',')) {
         file.getline(&uuid, ',');
         file.getline(&document_id, ',');
         file.getline(&others);
-        int uid = get_uid(uuid);
+        int uid = uuid_map.get_uid(uuid);
 
         //insert all display ids to display map
         display_map.insert({stoi(display_id), std::make_pair(uid, stoi(document_id))});
@@ -234,10 +221,10 @@ int calc_user_doc_interaction_topic(
     std::string display_id;
     std::string others;
 
-    timer tmr;
+    Timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
-    csvgz_reader file(filename);
+    CsvGzReader file(filename);
 
     // write interaction weights
     std::ofstream outfile("clicks_test_doc_topic_weight.csv.gz", std::ios_base::out | std::ios_base::binary);

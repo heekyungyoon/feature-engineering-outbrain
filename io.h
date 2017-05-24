@@ -4,11 +4,11 @@
 #include <boost/iostreams/device/file.hpp>
 #include <chrono>
 
-class timer {
+class Timer {
 private:
     std::chrono::steady_clock::time_point begin;
 public:
-    timer() {
+    Timer() {
         begin = std::chrono::steady_clock::now();
     }
     void finish() {
@@ -20,12 +20,30 @@ public:
 };
 
 
-class csvgz_reader {
+class UuidMap {
+public:
+    std::unordered_map<std::string, int> map;
+
+    int get_uid(std::string &uuid) {
+        int uid;
+        auto pair = map.find(uuid);
+        if (pair != map.end()) {
+            uid = pair->second;
+        } else {
+            uid = map.size();
+            map.insert(make_pair(uuid, uid));
+        }
+        return uid;
+    }
+};
+
+
+class CsvGzReader {
 public:
     boost::iostreams::filtering_istream inbuf;
     std::string header;
 
-    csvgz_reader(std::string filename) {
+    CsvGzReader(std::string filename) {
         boost::iostreams::file_source file(filename, std::ios_base::in | std::ios_base::binary);
         inbuf.push(boost::iostreams::gzip_decompressor());
         inbuf.push(file);
