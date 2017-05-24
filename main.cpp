@@ -39,7 +39,6 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
 {
     std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic;
     string filename = "../input/documents_topics.csv.gz";
-    //string filename = "/Users/heekyungyoon/Projects/feature_engineering_outbrain/data/documents_topics.csv.gz";
     std::string document_id;
     std::string topic_id;
     std::string confidence_level;
