@@ -9,11 +9,12 @@
 UuidMap uuid_map;
 std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
 typedef std::unordered_map<int, std::vector<std::pair<int, float>>> document_topic_map;
+typedef std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
 
 document_topic_map gen_doc_topic_map();
 void gen_user_topic_map(
         int tid,
-        std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
+        user_topic_map *user_topic_map,
         std::string filename,
         int start_row,
         int end_row,
@@ -70,7 +71,7 @@ document_topic_map gen_doc_topic_map()
 
 void gen_user_topic_map(
         int tid,
-        std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
+        user_topic_map *user_topic_map,
         std::string filename,
         int start_row,
         int end_row,
@@ -143,7 +144,7 @@ std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_t
 
     //init user_topic_map
     for (int i = 0; i < num_thread; ++i) {
-        std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
+        user_topic_map user_topic_map;
         user_topic_map_set.push_back(user_topic_map);
     }
 
