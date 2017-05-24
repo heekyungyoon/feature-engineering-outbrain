@@ -66,7 +66,7 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    std::cout << "\ni = " << i << std::endl;
     tmr.finish();
 
     return doc_topic;
@@ -216,7 +216,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    std::cout << "\ni = " << i << std::endl;
     tmr.finish();
 
     return display_map;
@@ -277,9 +277,9 @@ int calc_user_doc_interaction_topic(
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    std::cout << "\ni = " << i << std::endl;
     tmr.finish();
-    
+
     return 0;
 }
 

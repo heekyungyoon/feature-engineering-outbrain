@@ -12,8 +12,8 @@ public:
         begin = std::chrono::steady_clock::now();
     }
     void finish() {
-        std::cout << std::chrono::duration_cast<std::chrono::seconds>
-                          (std::chrono::steady_clock::now() - begin).count()
+        std::cout << "Time taken (sec): "
+                  << std::chrono::duration_cast<std::chrono::seconds> (std::chrono::steady_clock::now() - begin).count()
                   << "\n"
                   << std::endl;
     }
