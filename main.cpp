@@ -6,10 +6,12 @@
 #include <future>
 #include "io.h"
 
-UuidMap uuid_map;
-std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
 typedef std::unordered_map<int, std::vector<std::pair<int, float>>> document_topic_map;
 typedef std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_map;
+typedef std::unordered_map<int, std::pair<int, int>> display_map;
+
+UuidMap uuid_map;
+std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
 
 document_topic_map gen_doc_topic_map();
 void gen_user_topic_map(
@@ -19,14 +21,14 @@ void gen_user_topic_map(
         int start_row,
         int end_row,
         document_topic_map *doc_topic_map);
-std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_map_set(
+std::vector<user_topic_map> gen_user_topic_map_set(
         document_topic_map *doc_topic_map);
-std::unordered_map<int, std::pair<int, int>> gen_display_map(
+display_map gen_display_map(
         document_topic_map *doc_topic_map);
 int calc_user_doc_interaction_topic(
         document_topic_map *doc_topic_map,
         std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> *user_topic_map_set,
-        std::unordered_map<int, std::pair<int, int>> *display_map
+        display_map *display_map
 );
 
 
@@ -168,11 +170,11 @@ std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_t
 }
 
 
-std::unordered_map<int, std::pair<int, int>> gen_display_map(
+display_map gen_display_map(
         document_topic_map *doc_topic_map)
 {
     // read events to get uuid and document id from clicks_train
-    std::unordered_map<int, std::pair<int, int>> display_map;
+    display_map display_map;
     std::string filename = "../input/events.csv.gz";
     std::string display_id;
     std::string uuid;
@@ -222,7 +224,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 int calc_user_doc_interaction_topic(
         document_topic_map *doc_topic_map,
         std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> *user_topic_map_set,
-        std::unordered_map<int, std::pair<int, int>> *display_map
+        display_map *display_map
 )
 {
     // read clicks_train
@@ -287,7 +289,7 @@ int main() {
     // <document_id, <topic_id, confidence_level>>
     document_topic_map doc_topic_map = gen_doc_topic_map();
     // <display_id, <uuid, document_id>>
-    std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map(&doc_topic_map);
+    display_map display_map = gen_display_map(&doc_topic_map);
     // <<uuid, topic_id>, sum_confidence_level>
     std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set = gen_user_topic_map_set(
             &doc_topic_map);
