@@ -8,31 +8,31 @@
 
 UuidMap uuid_map;
 std::unordered_map<std::pair<int, int>, float, pairhash> user_topic_ref;
+typedef std::unordered_map<int, std::vector<std::pair<int, float>>> document_topic_map;
 
-
-std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map();
+document_topic_map gen_doc_topic_map();
 void gen_user_topic_map(
         int tid,
         std::unordered_map<std::pair<int, int>, float, pairhash> *user_topic_map,
         std::string filename,
         int start_row,
         int end_row,
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map);
+        document_topic_map *doc_topic_map);
 std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_map_set(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map);
+        document_topic_map *doc_topic_map);
 std::unordered_map<int, std::pair<int, int>> gen_display_map(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map);
+        document_topic_map *doc_topic_map);
 int calc_user_doc_interaction_topic(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
+        document_topic_map *doc_topic_map,
         std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> *user_topic_map_set,
         std::unordered_map<int, std::pair<int, int>> *display_map
 );
 
 
 
-std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
+document_topic_map gen_doc_topic_map()
 {
-    std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic;
+    document_topic_map doc_topic;
     std::string filename = "../input/documents_topics.csv.gz";
     std::string document_id;
     std::string topic_id;
@@ -74,7 +74,7 @@ void gen_user_topic_map(
         std::string filename,
         int start_row,
         int end_row,
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
+        document_topic_map *doc_topic_map)
 {
     std::string uuid;
     std::string document_id;
@@ -132,7 +132,7 @@ void gen_user_topic_map(
 
 
 std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_map_set(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
+        document_topic_map *doc_topic_map)
 {
     std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> user_topic_map_set;
     std::string filename = "../input/page_views.csv.gz";
@@ -168,7 +168,7 @@ std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> gen_user_t
 
 
 std::unordered_map<int, std::pair<int, int>> gen_display_map(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map)
+        document_topic_map *doc_topic_map)
 {
     // read events to get uuid and document id from clicks_train
     std::unordered_map<int, std::pair<int, int>> display_map;
@@ -219,7 +219,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
 
 
 int calc_user_doc_interaction_topic(
-        std::unordered_map<int, std::vector<std::pair<int, float>>> *doc_topic_map,
+        document_topic_map *doc_topic_map,
         std::vector<std::unordered_map<std::pair<int, int>, float, pairhash>> *user_topic_map_set,
         std::unordered_map<int, std::pair<int, int>> *display_map
 )
@@ -284,7 +284,7 @@ int calc_user_doc_interaction_topic(
 int main() {
     // I. Read file
     // <document_id, <topic_id, confidence_level>>
-    std::unordered_map<int, std::vector<std::pair<int, float>>> doc_topic_map = gen_doc_topic_map();
+    document_topic_map doc_topic_map = gen_doc_topic_map();
     // <display_id, <uuid, document_id>>
     std::unordered_map<int, std::pair<int, int>> display_map = gen_display_map(&doc_topic_map);
     // <<uuid, topic_id>, sum_confidence_level>
