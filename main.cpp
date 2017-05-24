@@ -44,7 +44,7 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
     std::string confidence_level;
     std::string others;
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
     csvgz_reader file(filename);
@@ -66,11 +66,8 @@ std::unordered_map<int, std::vector<std::pair<int, float>>> gen_doc_topic_map()
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): "
-              << std::chrono::duration_cast<std::chrono::seconds>
-                      (std::chrono::steady_clock::now() - begin).count()
-              << "\n"
-              << std::endl;
+    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    tmr.finish();
 
     return doc_topic;
 };
@@ -89,7 +86,7 @@ void gen_user_topic_map(
     std::string others;
 
     // I. calculate user-topic interaction based on page_views
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    timer tmr;
     std::cout << tid << "Start processing " << filename << std::endl;
 
     csvgz_reader file(filename);
@@ -134,12 +131,8 @@ void gen_user_topic_map(
         ++i;
     }
 
-    std::cout << "\nrow_count = " << row_count <<" (" << start_row << " - " << end_row << ")"
-              << "\nTime taken (sec): "
-              << std::chrono::duration_cast<std::chrono::seconds>
-                      (std::chrono::steady_clock::now() - begin).count()
-              << "\n"
-              << std::endl;
+    std::cout << "\nrow_count = " << row_count <<" (" << start_row << " - " << end_row << ")" << std::endl;
+    tmr.finish();
 }
 
 
@@ -190,7 +183,7 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
     std::string document_id;
     std::string others;
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
     csvgz_reader file(filename);
@@ -223,11 +216,9 @@ std::unordered_map<int, std::pair<int, int>> gen_display_map(
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): "
-              << std::chrono::duration_cast<std::chrono::seconds>
-                      (std::chrono::steady_clock::now() - begin).count()
-              << "\n"
-              << std::endl;
+    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    tmr.finish();
+
     return display_map;
 }
 
@@ -243,7 +234,7 @@ int calc_user_doc_interaction_topic(
     std::string display_id;
     std::string others;
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    timer tmr;
     std::cout << "Start processing " << filename << std::endl;
 
     csvgz_reader file(filename);
@@ -286,11 +277,9 @@ int calc_user_doc_interaction_topic(
         ++i;
     }
 
-    std::cout << "\ni = " << i <<"\nTime taken (sec): "
-              << std::chrono::duration_cast<std::chrono::seconds>
-                      (std::chrono::steady_clock::now() - begin).count()
-              << "\n"
-              << std::endl;
+    std::cout << "\ni = " << i <<"\nTime taken (sec): " << std::endl;
+    tmr.finish();
+    
     return 0;
 }
 

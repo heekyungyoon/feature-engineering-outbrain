@@ -2,6 +2,23 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file.hpp>
+#include <chrono>
+
+class timer {
+private:
+    std::chrono::steady_clock::time_point begin;
+public:
+    timer() {
+        begin = std::chrono::steady_clock::now();
+    }
+    void finish() {
+        std::cout << std::chrono::duration_cast<std::chrono::seconds>
+                          (std::chrono::steady_clock::now() - begin).count()
+                  << "\n"
+                  << std::endl;
+    }
+};
+
 
 class csvgz_reader {
 public:
