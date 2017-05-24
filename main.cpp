@@ -169,7 +169,7 @@ std::vector<unordered_map<std::pair<int, int>, float, pairhash>> gen_user_topic_
                                 filename,
                                 (i * num_row + 1),
                                 ((1 + i) * num_row),
-                                &(*doc_topic_map)));
+                                doc_topic_map));
     }
 
     //finish thread
