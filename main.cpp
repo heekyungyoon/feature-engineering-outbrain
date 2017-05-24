@@ -31,6 +31,7 @@ int calc_user_doc_interaction_topic(
 
 
 
+
 document_topic_map gen_doc_topic_map()
 {
     document_topic_map doc_topic;
@@ -289,8 +290,7 @@ int main() {
     // <display_id, <uuid, document_id>>
     display_map display_map = gen_display_map(&doc_topic_map);
     // <<uuid, topic_id>, sum_confidence_level>
-    std::vector<user_topic_map> user_topic_map_set = gen_user_topic_map_set(
-            &doc_topic_map);
+    std::vector<user_topic_map> user_topic_map_set = gen_user_topic_map_set(&doc_topic_map);
 
     // II. calculate user-document interaction in terms of topic
     calc_user_doc_interaction_topic(&doc_topic_map, &user_topic_map_set, &display_map);
