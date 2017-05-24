@@ -3,6 +3,8 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <chrono>
+#include <unordered_map>
+
 
 class Timer {
 private:
@@ -23,7 +25,6 @@ public:
 class UuidMap {
 public:
     std::unordered_map<std::string, int> map;
-
     int get_uid(std::string &uuid) {
         int uid;
         auto pair = map.find(uuid);
@@ -35,6 +36,11 @@ public:
         }
         return uid;
     }
+
+    std::unordered_map<std::string, int>* data() {
+        return &map;
+    };
+
 };
 
 
